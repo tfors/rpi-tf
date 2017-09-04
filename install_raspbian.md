@@ -110,3 +110,7 @@ pi@raspberrypi:~ $ sudo apt-get update
 pi@raspberrypi:~ $ sudo apt-get upgrade
 pi@raspberrypi:~ $ sudo reboot
 ```
+```
+pi@raspberrypi:~ $ sudo rpi-update
+pi@raspberrypi:~ $ sudo reboot
+```
