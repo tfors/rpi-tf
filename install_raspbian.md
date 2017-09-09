@@ -1,6 +1,6 @@
 # Install the Raspbian Image on a Micro SD Card
 
-* September, 2017 *
+*September, 2017*
 
 1. Download the **Raspbian Stretch Lite** image from [here](https://www.raspberrypi.org/downloads/raspbian/).  The version used in these notes is dated 2017-08-16.
 

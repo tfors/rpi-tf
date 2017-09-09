@@ -1,6 +1,6 @@
 # Install OpenCV on the Raspberry Pi
 
-* September, 2017 *
+*September, 2017*
 
 ## 1. Install Dependencies
 
