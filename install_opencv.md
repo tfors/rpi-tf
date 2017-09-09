@@ -2,6 +2,8 @@
 
 *September, 2017*
 
+These instructions have been adapted from those found [here](http://www.pyimagesearch.com/2015/10/26/how-to-install-opencv-3-on-raspbian-jessie/).
+
 ## 1. Install Dependencies
 
 SSH into the raspberry pi and run the following to install the depedencies.

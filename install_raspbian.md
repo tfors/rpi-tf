@@ -2,6 +2,8 @@
 
 *September, 2017*
 
+Below are instructions for headless setup of a Raspberry Pi 3. The Micro SD card preparation instructions are done on an Ubuntu 16.04 machine.
+
 1. Download the **Raspbian Stretch Lite** image from [here](https://www.raspberrypi.org/downloads/raspbian/).  The version used in these notes is dated 2017-08-16.
 
 2. Verify the sha-256 hash of the downloaded file matches the hash posted on the download web page:

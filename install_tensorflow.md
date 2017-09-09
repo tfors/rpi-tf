@@ -1,8 +1,12 @@
-# Preparation
+# Build and Install Tensorflow on the Raspberry Pi 3
 
 *September, 2017*
 
-## Bazel Dependencies
+These instructions have been adapted from those found [here](https://github.com/samjabrahams/tensorflow-on-raspberry-pi/blob/master/GUIDE.md).
+
+## 1. Preparation
+
+### Install Bazel Dependencies
 
 ```
 $ sudo apt-get install pkg-config zip g++ zlib1g-dev unzip
@@ -10,27 +14,27 @@ $ sudo apt-get install oracle-java7-jdk
 $ sudo update-alternatives --config java
 ```
 
-## Tensorflow Dependencies
+### Install Tensorflow Dependencies
 ```
 $ sudo apt-get install python3-pip python3-numpy swig python3-dev
 $ sudo pip3 install wheel
 ```
 
-## Configure for optimization flags
+### Configure GCC
 ```
 $ sudo apt-get install gcc-4.8 g++-4.8
 $ sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-4.8 100
 $ sudo update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-4.8 100
 ```
 
-## Prepare to build
+### Prepare Build Area
 
 ```
 $ mkdir tensorflow
 $ cd tensorflow
 ```
 
-## Create extra swap space
+### Create Extra Swap Space
 
 Insert a thumb drive into a USB port to use as swap space.
 ```
@@ -53,7 +57,7 @@ Run the following to enable swap:
 $ sudo swapon -a
 ```
 
-# Build Bazel
+## 2. Build and Install Bazel
 ```
 $ wget https://github.com/bazelbuild/bazel/releases/download/0.5.4/bazel-0.5.4-dist.zip
 $ unzip -d bazel bazel-0.5.4-dist.zip
@@ -83,7 +87,7 @@ When the build is done, install bazel:
 $ sudo cp output/bazel /usr/local/bin/bazel
 ```
 
-# Build Tensorflow
+## 3. Build and Install Tensorflow
 ```
 $ git clone --recurse-submodules https://github.com/tensorflow/tensorflow.git
 $ cd tensorflow
@@ -152,7 +156,7 @@ $ bazel-bin/tensorflow/tools/pip_package/build_pip_package /tmp/tensorflow_pkg
 $ sudo pip3 install /tmp/tensorflow_pkg/tensorflow-1.3.0-cp35-cp35m-linux_armv7l.whl
 ```
 
-# Cleanup
+## 4. Cleanup
 
 Remove the swap partition
 ```
