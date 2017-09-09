@@ -1,5 +1,7 @@
 # Install OpenCV on the Raspberry Pi
 
+* September, 2017 *
+
 ## 1. Install Dependencies
 
 SSH into the raspberry pi and run the following to install the depedencies.

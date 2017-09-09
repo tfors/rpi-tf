@@ -1,5 +1,7 @@
 # Preparation
 
+* September, 2017 *
+
 ## Bazel Dependencies
 
 ```
