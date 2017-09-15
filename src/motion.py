@@ -26,7 +26,7 @@ class Display(object):
 		self.SPI_PORT = 0
 		self.SPI_DEVICE = 0
 
-		self.disp = Adafruit_SSD1306.SSD1306_128_32(rst=RST)
+		self.disp = Adafruit_SSD1306.SSD1306_128_32(rst=self.RST)
 
 		# Initialize library.
 		self.disp.begin()
@@ -54,11 +54,11 @@ class Display(object):
 	def text(self, x, y, message):
 		self.draw.text((x, y), message, font=self.font, fill=255)
 
-	def draw(self):
+	def display(self):
 		self.disp.image(self.image)
 		self.disp.display()
 
-disp = Display()
+oled = Display()
 
 
 rez = [320,240]
@@ -119,11 +119,11 @@ for f in cam.capture_continuous(raw, format='bgr', use_video_port=True):
 		#	cv2.imwrite("gray.png", gray)
 		#	cv2.imwrite("pic.png", frame)
 		#	sys.exit()
-		disp.text(0, 10, "    ** Motion ** ")
+		oled.text(0, 10, "    ** Motion ** ")
 	else:
-		disp.clear()
+		oled.clear()
 
-	disp.draw()
+	oled.display()
 
 
 	raw.truncate(0)
