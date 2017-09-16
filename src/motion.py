@@ -58,77 +58,128 @@ class Display(object):
 		self.disp.image(self.image)
 		self.disp.display()
 
-oled = Display()
 
+class MotionDetection(object):
+	def __init__(self, w=320, h=240, framerate=10):
+		self.w = w
+		self.h = h
+		self.cam = PiCamera()
+		self.cam.resolution = tuple([self.w, self.h])
+		self.framerate = framerate
+		self.raw = PiRGBArray(self.cam, size=self.cam.resolution)
+		self.avg = None
+		self.n = 0
+		self.startTime = None
+		self.motion_callbacks = []
+		self.nomotion_callbacks = []
+		self.timestamp = None
 
-rez = [320,240]
-cam = PiCamera()
-cam.resolution = tuple(rez)
-cam.framerate = 5
-raw = PiRGBArray(cam, size=tuple(rez))
+	def grayscale(self):
+		self.gray = cv2.cvtColor(self.frame, cv2.COLOR_BGR2GRAY)
+		self.gray = cv2.GaussianBlur(self.gray, (21, 21), 0)
 
-avg = None
+	def compute_delta(self):
+		if self.avg is None:
+			self.avg = self.gray.copy().astype("float")
+			self.raw.truncate(0)
+			self.delta = None
+		cv2.accumulateWeighted(self.gray, self.avg, 0.5)
+		self.delta = cv2.absdiff(self.gray, cv2.convertScaleAbs(self.avg))
 
-lastTime = None
+	def detect_contours(self):
+		# threshold the delta image, dilate the thresholded image to fill
+		# in holes, then find contours on thresholded image
+		thresh = cv2.threshold(self.delta, 5, 255, cv2.THRESH_BINARY)[1]
+		thresh = cv2.dilate(thresh, None, iterations=2)
+		(_, self.cnts, _) = cv2.findContours(thresh.copy(), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
 
-n = 0
-for f in cam.capture_continuous(raw, format='bgr', use_video_port=True):
-	n += 1
-	motion = False
-	frame = f.array
-	timestamp = datetime.datetime.now()
-	gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
-	gray = cv2.GaussianBlur(gray, (21, 21), 0)
+	def detect_motion(self, boundingBox=False):
+		self.n += 1
+		motionDetected = False
+		# loop over the contours
+		for c in self.cnts:
+			# if the contour is too small, ignore it
+			if cv2.contourArea(c) < 5000:
+				continue
 
-	if avg is None:
-		avg = gray.copy().astype("float")
-		raw.truncate(0)
-		continue
+			# compute the bounding box for the contour, draw it on the frame,
+			# and update the text
+			(x, y, w, h) = cv2.boundingRect(c)
+			if boundingBox:
+				cv2.rectangle(self.frame, (x, y), (x + w, y + h), (0, 255, 0), 2)
+			motionDetected = True
 
-	cv2.accumulateWeighted(gray, avg, 0.5)
-	delta = cv2.absdiff(gray, cv2.convertScaleAbs(avg))
+		if self.n < 10:
+			return False
 
-	# threshold the delta image, dilate the thresholded image to fill
-	# in holes, then find contours on thresholded image
-	thresh = cv2.threshold(delta, 5, 255, cv2.THRESH_BINARY)[1]
-	thresh = cv2.dilate(thresh, None, iterations=2)
-	(_, cnts, _) = cv2.findContours(thresh.copy(), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+		return motionDetected
 
-	# loop over the contours
-	for c in cnts:
-		# if the contour is too small, ignore it
-		if cv2.contourArea(c) < 5000:
-			continue
+	def save(self, frame, filename):
+		cv2.imwrite(filename, frame)
 
-		# compute the bounding box for the contour, draw it on the frame,
-		# and update the text
-		(x, y, w, h) = cv2.boundingRect(c)
-		cv2.rectangle(frame, (x, y), (x + w, y + h), (0, 255, 0), 2)
-		motion = True
+	def save_debug_images(self):
+		self.save(self.frame, 'frame.png')
+		self.save(self.gray,  'gray.png')
+		self.save(self.delta, 'delta.png')
 
-	if motion:
-		## draw the text and timestamp on the frame
-		ts = timestamp.strftime("%A %d %B %Y %I:%M:%S%p")
-		##cv2.putText(frame, "Room Status: {}".format(text), (10, 20),
-		##	cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 255), 2)
-		#cv2.putText(frame, ts, (10, frame.shape[0] - 10),
-		#	cv2.FONT_HERSHEY_SIMPLEX, 0.35, (0, 0, 255), 1)
+	def set_motion_callback(self, cb):
+		self.motion_callbacks.append(cb)
 
-		#if n > 10:
-		#	cv2.imwrite("avg.png", avg)
-		#	cv2.imwrite("gray.png", gray)
-		#	cv2.imwrite("pic.png", frame)
-		#	sys.exit()
+	def set_nomotion_callback(self, cb):
+		self.nomotion_callbacks.append(cb)
+
+	def get_rate(self):
+		if self.timestamp is None:
+			return ''
+		if self.starttime is None:
+			return ''
+		if self.n == 0:
+			return ''
+		return self.n / (self.timestamp - self.starttime).total_seconds()
+
+	def run(self):
+		self.starttime = datetime.datetime.now()
+		for f in self.cam.capture_continuous(self.raw, format='bgr', use_video_port=True):
+			self.timestamp = datetime.datetime.now()
+
+			self.frame = f.array
+			self.grayscale()
+			self.compute_delta()
+
+			if self.delta is not None:
+				self.detect_contours()
+				motion = self.detect_motion(boundingBox=True)
+				if motion:
+					for cb in self.motion_callbacks:
+						cb()
+				else:
+					for cb in self.nomotion_callbacks:
+						cb()
+
+			self.raw.truncate(0)
+
+def motion_detected():
+	global g_motion
+	if g_motion == False:
 		oled.text(0, 10, "    ** Motion ** ")
-	else:
+		oled.display()
+		g_motion = True
+	print(md.get_rate())
+	md.save_debug_images()
+	sys.exit()
+
+def no_motion_detected():
+	global g_motion
+	if g_motion == True:
 		oled.clear()
+		oled.display()
+		g_motion = False
+	print(md.get_rate())
 
-	oled.display()
 
-
-	raw.truncate(0)
-	if n % 10 == 0:
-		if lastTime is not None:
-			dt = time.time() - lastTime
-			# print 10. / dt
-		lastTime = time.time()
+oled = Display()
+md = MotionDetection()
+g_motion = False
+md.set_motion_callback(motion_detected)
+md.set_nomotion_callback(no_motion_detected)
+md.run()
