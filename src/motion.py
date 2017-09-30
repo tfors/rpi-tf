@@ -73,18 +73,19 @@ class MotionDetection(object):
 		self.motion_callbacks = []
 		self.nomotion_callbacks = []
 		self.timestamp = None
+		self.faceCascade = cv2.CascadeClassifier('haarcascade_frontalface_default.xml')
 
 	def grayscale(self):
 		self.gray = cv2.cvtColor(self.frame, cv2.COLOR_BGR2GRAY)
-		self.gray = cv2.GaussianBlur(self.gray, (21, 21), 0)
+		self.blur = cv2.GaussianBlur(self.gray, (21, 21), 0)
 
 	def compute_delta(self):
 		if self.avg is None:
-			self.avg = self.gray.copy().astype("float")
+			self.avg = self.blur.copy().astype("float")
 			self.raw.truncate(0)
 			self.delta = None
-		cv2.accumulateWeighted(self.gray, self.avg, 0.5)
-		self.delta = cv2.absdiff(self.gray, cv2.convertScaleAbs(self.avg))
+		cv2.accumulateWeighted(self.blur, self.avg, 0.5)
+		self.delta = cv2.absdiff(self.blur, cv2.convertScaleAbs(self.avg))
 
 	def detect_contours(self):
 		# threshold the delta image, dilate the thresholded image to fill
@@ -113,6 +114,17 @@ class MotionDetection(object):
 			return False
 
 		return motionDetected
+
+	def detect_faces(self, boundingBox=False):
+		self.faces = self.faceCascade.detectMultiScale (
+				self.gray,
+				scaleFactor=1.1,
+				minNeighbors=5
+			)
+		for (x, y, w, h) in self.faces:
+			if boundingBox:
+				cv2.rectangle(self.frame, (x, y), (x + w, y + h), (255, 0, 0), 2)
+		return len(self.faces) > 0
 
 	def save(self, frame, filename):
 		cv2.imwrite(filename, frame)
@@ -165,6 +177,7 @@ def motion_detected():
 		oled.display()
 		g_motion = True
 	print(md.get_rate())
+	print(md.detect_faces(boundingBox=True))
 	md.save_debug_images()
 	sys.exit()
 
