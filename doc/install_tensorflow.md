@@ -132,6 +132,17 @@ native.new_http_archive(
 )
 ```
 
+Also, in the same file, update the SHA256 checksum for `protobuf`.
+Search the file for the old checksum:
+```
+6d43b9d223ce09e5d4ce8b0060cb8a7513577a35a64c7e3dad10f0703bf3ad93
+```
+
+And replace it with the new one:
+```
+e5fdeee6b28cf6c38d61243adff06628baa434a22b5ebb7432d2a7fbabbdb13d
+```
+
 Configure the build and accept the defaults:
 ```
 $ ./configure
