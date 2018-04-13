@@ -10,8 +10,9 @@ These instructions have been adapted from those found [here](https://github.com/
 
 ```
 $ sudo apt-get install pkg-config zip g++ zlib1g-dev unzip
-$ sudo apt-get install oracle-java7-jdk
+$ sudo apt-get install oracle-java8-jdk
 $ sudo update-alternatives --config java
+$ sudo update-alternatives --config javac
 ```
 
 ### Install Tensorflow Dependencies
